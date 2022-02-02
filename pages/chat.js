@@ -2,15 +2,35 @@ import { Box, Text, TextField, Image, Button } from '@skynexui/components';
 import React from 'react';
 import appConfig from '../config.json';
 import { createClient } from '@supabase/supabase-js'
+import { useRouter } from 'next/router';
+import { ButtonSendSticker } from '../src/components/ButtonSendSticker';
+
+
+
 // como fazer Ajax. https://medium.com/@omariosouto/entendendo-como-fazer-ajax-com-a-fetchapi-977ff20da3c6
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTY0MzYzNzg4NCwiZXhwIjoxOTU5MjEzODg0fQ.7CmhKi84ZtgTkmbn3sgLfGHBP7oLc_U5PS7c7XHhc9k';
 const SUPABASE_URL = 'https://dpcrpoelqbnwbjqexzam.supabase.co';
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-
+function escutaMensagensEmTempoReal(adicionaMensagem) {
+	return supabaseClient
+		.from('mensagens')
+		.on('INSERT', (respostaLive) => {
+			adicionaMensagem(respostaLive.new);
+		})
+		.subscribe();
+}
 export default function ChatPage() {
+	const roteamento = useRouter();
+	const usuarioLogado = roteamento.query.username;
+	console.log(roteamento.query);
+	console.log('usuarioLogado', usuarioLogado);
 	const [mensagem, setMensagem] = React.useState('');
-	const [listaDeMensagens, setListaDeMensagens] = React.useState([]);
+	const [listaDeMensagens, setListaDeMensagens] = React.useState([
+
+	]);
+
+
 
 	// Sua lógica vai aqui
 	// Usuário
@@ -25,42 +45,60 @@ export default function ChatPage() {
 	// ./Sua lógica vai aqui
 
 
-    React.useEffect(() => {
+	React.useEffect(() => {
 
-		 supabaseClient 
-		.from ('mensagens')
-		   .select('*')
-		   .order('id', { ascending: false} )
-			   .then(({data}) => {
-   
-		   console.log('Dados da consulta;', data);
-		   setListaDeMensagens(data);
-	   });
+		supabaseClient
+			.from('mensagens')
+			.select('*')
+			.order('id', { ascending: false })
+			.then(({ data }) => {
+				// console.log('Dados da consulta;', data);
+				setListaDeMensagens(data);
+			});
+
+
+		escutaMensagensEmTempoReal((novaMensagem) => {
+			console.log('Nova mensagem', novaMensagem);
+			console.log('listaDeMensagens:', listaDeMensagens);
+			// Quero reusar um valor de referencia (objeto/array)
+			// Passar uma função pro seState
+
+			// setListaMensagens([
+			// novaMensagem,
+			// ...listaDeMensagens
+			// ])
+
+			setListaDeMensagens((valorAtualDaLista) => {
+
+				return [
+					novaMensagem,
+					...valorAtualDaLista,
+				]
+
+
+			});
+		});
+
 	}, []);
-	
+
 
 	function handleNovaMensagem(novaMensagem) {
 		const mensagem = {
 			// id: listaDeMensagens.length + 1,
-			de: 'vanessametonini',
+			de: usuarioLogado,
 			texto: novaMensagem
 		};
-			supabaseClient
+		supabaseClient
 			.from('mensagens')
 			.insert([
 				// Tem que ser o objeto com os MESMOS CAMPOS que você escreveu no supabase.
 				mensagem
 			])
-				.then(({data}) => {
-					console.log ('Criando mensagem: ', oQuetaVindoComoRespostas)
-
-					setListaDeMensagens([
-						data[0],
-						...listaDeMensagens,			
-				]);
-					
-		});
-			setMensagem('');
+			.then(({ data }) => {
+				console.log('Criando mensagem: ', data);
+				// console.log('Criando mensagem: ', oQuetaVindoComoRespostas)
+			});
+		setMensagem('');
 
 
 	}
@@ -102,7 +140,8 @@ export default function ChatPage() {
 					}}
 				>
 
-					<MessageList mensagens={listaDeMensagens} />
+					<MessageList mensagens={listaDeMensagens} set={setListaDeMensagens} />
+					
 					{/*{listaDeMensagens.map((mensagemAtual) => {
 						console.log(mensagemAtual);
 						return(
@@ -111,6 +150,7 @@ export default function ChatPage() {
 							</li>
 						)
 					})}*/}
+
 					<Box
 						as="form"
 						styleSheet={{
@@ -119,7 +159,7 @@ export default function ChatPage() {
 						}}
 					>
 						<TextField
-                        
+
 							value={mensagem}
 							onChange={(event) => {
 								// console.log(event);
@@ -145,6 +185,14 @@ export default function ChatPage() {
 								color: appConfig.theme.colors.neutrals[200],
 							}}
 						/>
+						{/* {CallBack} */}
+						<ButtonSendSticker
+							onStickerClick={(sticker) => {
+								console.log('Salva esse sticker no banco'), sticker;
+								handleNovaMensagem(':sticker' + sticker);
+							}}
+
+						/>
 					</Box>
 				</Box>
 			</Box>
@@ -158,7 +206,7 @@ function Header() {
 			<Box styleSheet={{ width: '100%', marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }} >
 				<Text variant='heading5'>
 					Chat
-                </Text>
+				</Text>
 				<Button
 					variant='tertiary'
 					colorVariant='neutral'
@@ -176,7 +224,7 @@ function MessageList(props) {
 		<Box
 			tag="ul"
 			styleSheet={{
-				overflow: 'scroll',
+				overflow: 'auto',
 				display: 'flex',
 				flexDirection: 'column-reverse',
 				flex: 1,
@@ -200,6 +248,7 @@ function MessageList(props) {
 					>
 						<Box
 							styleSheet={{
+								display: 'flex',
 								marginBottom: '8px',
 							}}
 						>
@@ -226,8 +275,56 @@ function MessageList(props) {
 							>
 								{(new Date().toLocaleDateString())}
 							</Text>
+
+							<Box
+                                styleSheet={{
+                                    marginLeft: 'auto',
+                                    display: 'flex',
+                                    alignItems: 'center'
+
+                                }}
+                            >
+                                <button onClick={() => {
+                                    const deletarDaLista = props.mensagens.filter(object => object.id !== mensagem.id)
+                                    props.set(deletarDaLista)
+                                }}
+                                ><img src="http://www.abifina.org.br/flutuante/close_menu.png" height={'20px'}></img></button>
+                                <style jsx>{`
+                                button{
+                                    height: 30px;
+                                    background: none;
+                                    border: none;
+                                    border-radius: 2px;
+                                    padding: 5px;
+                                    cursor:pointer;
+                                    }
+                                button:hover{
+                                    background: red;
+                                }
+                                `}
+                                </style>
+                            </Box>
 						</Box>
-						{mensagem.texto}
+				
+
+						{/* {Declarativo} */}
+						{/* Condicional: {mensagem.texto.startWith(':sticker:').toString()} */}
+						{mensagem.texto.startsWith(':sticker')
+
+							? (
+								< Image src={mensagem.texto.replace(':sticker', '')} />
+							)
+							: (
+								mensagem.texto
+							)}
+
+
+						{/* if mensagem de texto possui stickers:
+								 	mostra a imagem
+									 else
+									 mensagem.texto */}
+
+						
 					</Text>
 				);
 			})}
