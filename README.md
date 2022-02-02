@@ -13,7 +13,8 @@ Status
 
 Previa.
 
-https://github.com/gehhanna/aluracord-react-imersao/blob/main/.github/login.PNG
+<img src="https://github.com/gehhanna/aluracord-react-imersao/blob/main/.github/login.PNG" width="700px" />
+
 
 
 
