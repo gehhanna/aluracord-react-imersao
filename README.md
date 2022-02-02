@@ -5,7 +5,7 @@ Imersão React com aluracord.
 # Projeto feito em uma web page React baseado no login do Discord layout. 
 
   #Link para acompanhar o chat do projeto.
-aluracord-react-imersao-pohok7ey0-gehhanna.vercel.app
+https://aluracord-react-imersao.vercel.app/
 
 
 Status
