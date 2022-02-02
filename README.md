@@ -4,6 +4,10 @@ Imersão React com aluracord.
 
 # Projeto feito em uma web page React baseado no login do Discord layout. 
 
+  #Link para acompanhar o chat do projeto.
+aluracord-react-imersao-pohok7ey0-gehhanna.vercel.app
+
+
 Status
 🚧 ... Desenvolvendo ... 🚧
 
@@ -25,6 +29,6 @@ OR
   
   # Executa a aplicação em ambiente de desenvolvimento
   npm run dev
-
-
+  
+ 
 
