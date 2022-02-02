@@ -2,7 +2,7 @@
 Projeto criado na imersão react com a @alura @omariosouto @peas
 Imersão React com aluracord.
 
-# Projeto feito em uma web page React baseado no login do Discord layout. 
+# Projeto feito em uma web page React baseado no Discord layout. 
 
   #Link para acompanhar o chat do projeto.
 https://aluracord-react-imersao.vercel.app/
